@@ -1,0 +1,133 @@
+= Run Couchbase Docker Container
+
+This guide explains how to start a Couchbase Docker Container and connect to it using the http://developer.couchbase.com/documentation/server/current/cli/cbcli-intro.html[Couchbase CLI].
+
+== What you'll build
+
+Couchbase is an open source NoSQL document database. Couchbase can be downloaded and started on a variety of platforms from http://www.couchbase.com/nosql-databases/downloads. This guide will explain how to start Couchbase as Docker container. Then it will use the Couchbase CLI to connect and query the Couchbase server.
+
+== What you'll need
+
+- Docker, that's it!
+
+== Setup
+
+Install Docker on your machine as explained at https://docker.com/getdocker.
+
+== Run Couchbase Docker Container
+
+=== Introduction
+
+Several Couchbase Docker images are available at https://hub.docker.com/_/couchbase/[Docker Hub]. The common ones are listed below:
+
+[options="header", width="75%", cols="1, 2"]
+|====
+| Image | Purpose
+| `couchbase` | Latest GA of Couchbase Enterprise Edition
+| `couchbase:community` | Latest GA of Couchbase Community Edition
+| `couchbase/server` | Latest Developer Preview, Beta or GA release of Coucbbase
+| `couchase/server:sandbox` | Latest sandbox GA of `couchbase/server`
+|====
+
+All images, except `couchbase/server:sandbox`, require Couchbase to be configured before it can be used. The `couchbase/server:sandbox` image is pre-configured developer sandbox to get you started quickly.
+
+Complete set of tags are listed at https://hub.docker.com/r/library/couchbase/tags/.
+
+More details about `couchbase/server` image is at https://hub.docker.com/r/couchbase/server/.
+
+=== Run Couchbase Container
+
+Open a terminal, start Couchbase Couchbase Docker container using the command:
+
+```
+docker run -d --name db -p 8091-8093:8091-8093 -p 11210:11210 couchbase/server:sandbox
+```
+
+In this command:
+
+. `-d` runs the container in a detached/background mode.
+. `--name db` assigns a name to the container. This will be used later.
+. `-p 8091-8093:8091-8093` forwards the ports 8091 through 8093 on localhost to be forwarded to similar ports in container. Purpose of each port is explained at http://developer.couchbase.com/documentation/server/current/install/install-ports.html.
+. `-p 11210:11210` forwards port 11210 on localhost to the same port in the container.
+
+If the Docker image does not exist, then it will be downloaded and the container started.
+
+Logs of the container can be seen using the command `docker logs db`.
+
+See the list of running containers using the command `docker ps`. It shows the output as:
+
+```
+CONTAINER ID        IMAGE                      COMMAND                  CREATED             STATUS              PORTS                                                                                                         NAMES
+e6c1037fd5ad        couchbase/server:sandbox   "/entrypoint.sh /opt/"   5 minutes ago       Up 5 minutes        8094/tcp, 0.0.0.0:8091-8093->8091-8093/tcp, 11207/tcp, 11211/tcp, 0.0.0.0:11210->11210/tcp, 18091-18093/tcp   db
+```
+
+=== Connect using Couchbase CLI
+
+Connect to this Couchbase container using the Couchbase CLI:
+
+```
+docker run -it --link db:db couchbase/server:sandbox cbq --engine http://db:8093
+```
+
+In this command:
+
+. `-it` runs the container in an interactive way and allows TTY interaction. This is required for Couchbase CLI to be able to communicate with the container.
+. `--link` creates a symbolic link to the running container. This allows to use the symbolic name to be referred later in the command.
+. `cbq --engine http://db:8093` is the Couchbase CLI that connects using the symbolic name created earlier. This overrides the default command for the container.
+
+It shows the output:
+
+```
+ No input credentials. In order to connect to a server with authentication, please provide credentials.
+ Connected to : http://db:8093/. Type Ctrl-D or \QUIT to exit.
+
+ Path to history file for the shell : /root/.cbq_history 
+cbq>
+```
+
+Run a http://www.couchbase.com/n1ql[N1QL query] to get one JSON document from `travel-sample` bucket:
+
+```
+cbq> select * from `travel-sample` limit 1;
+{
+    "requestID": "61ecee61-490a-470c-98e6-4adea3477bb8",
+    "signature": {
+        "*": "*"
+    },
+    "results": [
+        {
+            "travel-sample": {
+                "callsign": "MILE-AIR",
+                "country": "United States",
+                "iata": "Q5",
+                "icao": "MLA",
+                "id": 10,
+                "name": "40-Mile Air",
+                "type": "airline"
+            }
+        }
+    ],
+    "status": "success",
+    "metrics": {
+        "elapsedTime": "15.986262ms",
+        "executionTime": "15.912342ms",
+        "resultCount": 1,
+        "resultSize": 300
+    }
+}
+```
+
+Type `Ctrl`+`D` to quit the `\QUIT` to exit the CBQ shell.
+
+=== Stop and Remove Couchbase Container
+
+Stop the container using the command `docker stop db`.
+
+Remove the container using the command `docker rm db`.
+
+== Summary
+
+Congratulations!
+
+You started a Couchbase Docker container and connected to it using the Couchbase CLI and ran a query.
+
