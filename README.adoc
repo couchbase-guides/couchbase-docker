@@ -43,7 +43,7 @@ Open a terminal, start Couchbase Couchbase Docker container using the command:
 docker run -d --name db -p 8091-8093:8091-8093 -p 11210:11210 couchbase/server:sandbox
 ```
 
-WARNING: This command uses default ports for Couchbase. If you already have a Couchbase instance running your machine then this command will fail. Make sure to stop the local instance of Couchbase first.
+WARNING: This command uses default ports for Couchbase. If you already have a Couchbase instance running on your machine then this command may fail. Make sure to stop the local instance of Couchbase first.
 
 In this command:
 
@@ -71,7 +71,7 @@ Connect to this Couchbase container using the Couchbase CLI:
 docker run -it --link db:db couchbase/server:sandbox cbq --engine http://db:8093
 ```
 
-NOTE: You may have to wait for about 30 seconds for the Couchbase container to be started before this command can be issued.
+NOTE: You may have to wait for about 30 seconds for the Couchbase container to be started before this command can be issued. Otherwise CBQ will not be able to connect to the Query service of Couchbase.
 
 In this command:
 
